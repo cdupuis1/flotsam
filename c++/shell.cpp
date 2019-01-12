@@ -54,6 +54,7 @@ void Shell::ExecuteLoop() {
 	string token;
 	int i = 0;
 	vector<string> cmd_str_vec;
+	int num_alloc = 0;
 
 	while (1) {
 		cout << "# ";
@@ -65,6 +66,7 @@ void Shell::ExecuteLoop() {
 		// a char * array to hold the program arguments
 		istringstream cmd_token(cmd);
 		num_args = 0;
+		num_alloc = 0;
 		cmd_str_vec.clear();
 
 		// Break the string up by ' '
@@ -79,8 +81,9 @@ void Shell::ExecuteLoop() {
 			continue;
 
 		// Allocate array of char
-		args = (char **) malloc(num_args * sizeof(char *));
-		memset(args, 0, num_args * sizeof(char *));
+		num_alloc = num_args + 1;
+		args = (char **) malloc(num_alloc * sizeof(char *));
+		memset(args, 0, num_alloc * sizeof(char *));
 
 		// Allocate space for strings
 		for (i = 0; i < num_args; i++) {
@@ -96,6 +99,9 @@ void Shell::ExecuteLoop() {
 				size = word_size;
 			strncpy(args[i], cmd_str_vec[i].c_str(), cmd_str_vec[i].size());
 		}
+
+		// NULL terminate the list
+		args[num_args] == NULL;
 
 		// Fork you!
 		pid = fork();
