@@ -15,7 +15,7 @@ using namespace std;
 const int word_size = 255;
 
 class Shell {
-public:
+private:
 	void ChangeDir(vector<string> cmd);
 	int HandleInternalCmd(vector<string> cmd);
 public:
