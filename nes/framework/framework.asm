@@ -99,4 +99,8 @@ VBLANK:
     .word RESET  ; RESET interrupt
     .word 0      ; IRQ interrupt
 
+.segment "RODATA"
+; Read only data such as palette data would go here
+
 .segment "CHARS"
+; an .incbin like "your.chr" file with sprite data would go here
