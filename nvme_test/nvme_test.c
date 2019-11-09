@@ -12,6 +12,7 @@ MODULE_DESCRIPTION("NVMe test module");
 MODULE_VERSION("0.1");
 
 struct nvme_test_dev nvme;
+struct nvme_test_regs regs;
 
 static void nvme_test_dev_release(struct device *thedev)
 {
@@ -31,7 +32,17 @@ static int nvme_test_reg_write32(struct nvme_ctrl *ctrl, u32 off, u32 val)
 
 static int nvme_test_reg_read64(struct nvme_ctrl *ctrl, u32 off, u64 *val)
 {
-	*val = 0;
+	struct nvme_test_dev *nvme =
+		container_of(ctrl, struct nvme_test_dev, ctrl);
+
+	switch (off) {
+	case NVME_REG_CAP:
+		*val = nvme->regs.cap;
+		break;
+	default:
+		*val = 0;
+	}
+
 	return 0;
 }
 
@@ -56,6 +67,30 @@ static const struct nvme_ctrl_ops nvme_test_ctrl_ops = {
 	.get_address		= nvme_test_get_address,
 };
 
+static int nvme_test_alloc_admin_queue(struct nvme_test_dev *nvme)
+{
+	nvme->adminq.cqes = kmalloc(GFP_KERNEL,
+		sizeof(struct nvme_completion) * ADMIN_Q_DEPTH);
+	if (!nvme->adminq.cqes) {
+		pr_crit("%s(): Failed to allocate admin cqes\n", __func__);
+		return -ENOMEM;
+	}
+
+	nvme->adminq.sqes = kmalloc(GFP_KERNEL,
+		sizeof(struct nvme_command) * ADMIN_Q_DEPTH);
+	if (!nvme->adminq.sqes) {
+		pr_crit("%s(): Failed to allocate admin sqes\n", __func__);
+		return -ENOMEM;
+	}
+
+	return 0;
+}
+
+static void nvme_test_free_admin_queue(struct nvme_test_dev *nvme)
+{
+	kfree(nvme->adminq.sqes);
+	kfree(nvme->adminq.cqes);
+}
 
 static void nvme_test_reset_work(struct work_struct *work)
 {
@@ -75,13 +110,20 @@ static void nvme_test_reset_work(struct work_struct *work)
         goto out;
     }
 
-    result = nvme_init_identify(&nvme->ctrl);
-    if (result)
-        goto out;
+	/* Allocate admin queues */
+	result = nvme_test_alloc_admin_queue(nvme);
+	if (result)
+		goto free_admin_queues;
+
+    //result = nvme_init_identify(&nvme->ctrl);
+	//if (result)
+        //goto out;
 
 	nvme_start_ctrl(&nvme->ctrl);
 	
 	return;
+free_admin_queues:
+	nvme_test_free_admin_queue(nvme);
 out:
 	pr_info("%s(): Out reset failed\n", __func__);
 }
@@ -95,7 +137,13 @@ static void nvme_test_async_probe(void *data, async_cookie_t cookie)
 	nvme_put_ctrl(&nvme->ctrl);
 }
 
-static int __init nvme_test_init(void) {
+static void nvme_test_set_regs(struct nvme_test_dev *nvme)
+{
+	nvme->regs.cap = ADMIN_Q_DEPTH; // Bits 0-15 
+}
+
+static int __init nvme_test_init(void)
+{
 	int ret;
 
 	nvme.store = vmalloc(BACKING_STORE_SIZE);
@@ -123,6 +171,9 @@ static int __init nvme_test_init(void) {
 		goto unreg_dev;
 	}
 
+	// Set up dummy registers
+	nvme_test_set_regs(&nvme);
+
 	nvme_reset_ctrl(&nvme.ctrl);
 	nvme_get_ctrl(&nvme.ctrl);
 	async_schedule(nvme_test_async_probe, &nvme);
@@ -139,6 +190,7 @@ free_store:
 
 static void __exit nvme_test_exit(void) {
 	nvme_change_ctrl_state(&nvme.ctrl, NVME_CTRL_DELETING);
+	nvme_test_free_admin_queue(&nvme);
 	nvme_stop_ctrl(&nvme.ctrl);
 	nvme_uninit_ctrl(&nvme.ctrl);
 	nvme_put_ctrl(&nvme.ctrl);
