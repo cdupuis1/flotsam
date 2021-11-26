@@ -1,0 +1,28 @@
+<!-- Simple Javascript to increment a number store in local storage-->
+<html>
+<head>
+    <title>Sample of Javascript localstorage</title>
+</head>
+<body>
+    <div id="output"></div>
+    <script>
+        const keyName = "number"
+        var tmp_num = localStorage.getItem(keyName);
+        var output = document.getElementById("output");
+
+        // Check if our item exists.  If not set our number to 0
+        if (tmp_num == null) {
+            number = 0;
+        } else {
+            number = parseInt(tmp_num);
+        }
+
+        // Increment our number
+        number++;
+        output.innerHTML = "number = " + number.toString();
+
+        // Store our number back into localStorage
+        localStorage.setItem(keyName, number.toString());
+    </script>
+</body>
+</html>

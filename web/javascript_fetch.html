@@ -1,0 +1,33 @@
+<!-- Shows how to use the fetch API to get a JSON object and then parse it -->
+<html>
+    <head>
+        <title>Sample Javascript Showing Fetch() Object</title>
+    </head>
+    <body>
+        <div id="output"></div>
+        <script>
+            // We use the randomuser.me JSON api to get an object to parse
+            var url = "https://randomuser.me/api";
+            var output = document.getElementById("output");
+
+            fetch(url).then(function(response) {
+                // This function is for handling the response.  Is this case we simply
+                // return the JSON data to parse in the function defined in the the .then
+                // clause
+                return response.json();
+            }).then(function(data) {
+                // Assign our person from the JSON results to a variable
+                var person = data.results[0];
+                
+                // Display the name
+                output.innerHTML += person.name.first + " " + person.name.last + "<br><br>";
+
+                // Display a purty picture
+                output.innerHTML += "<img src=\"" + person.picture.large + "\">";
+            }).catch(function(err) {
+                // This function handles any errors with a simple popup
+                window.alert(err);
+            });
+        </script>
+    </body>
+</html>
