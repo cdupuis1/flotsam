@@ -1,0 +1,14 @@
+[Unit]
+Description=DHT 22 Temperature Service
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi
+ExecStart=python temp.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+

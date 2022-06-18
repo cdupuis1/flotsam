@@ -1,0 +1,29 @@
+<html>
+<head>
+    <title>Current Temperature</title>
+</head>
+<body>
+    The current temperature in your basement is: <br><br>
+    <div id="temp">temp:</div>
+    <div id="humidity">humidity</div>
+    <script>
+        var temp = document.getElementById("temp");
+        var humidity = document.getElementById("humidity");
+
+        temp.innerHTML="temp: NaN";
+        humidity.innerHTML="humidity: NaN";
+
+        const request = new XMLHttpRequest();
+        request.open('GET', 'http://192.168.1.11:5000/temp');
+        request.onreadystatechange = function(){
+            if((request.status==200) && (request.readyState==4)){
+                console.log(request.responseText)
+                temp_json = JSON.parse(request.responseText);
+                temp.innerHTML = "temp: " + temp_json.temp;
+                humidity.innerHTML = "humidity: " + temp_json.humidity;
+            }
+        }
+        request.send();
+    </script>
+</body>
+</html>
