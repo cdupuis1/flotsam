@@ -1,0 +1,27 @@
+<!-- This works with the sse main.rs rust program -->
+<html>
+    <head>
+        <title>SSE Sample App</title>
+    </head>
+    <body>
+        <div id="data"></div>
+        <script>
+            // Create the connection back to the server for server-side events (SSE)
+            event_source = new EventSource("http://localhost:8000/sse");
+            console.log("Registered EventSource");
+
+            // Call back for when we receive a message
+            event_source.onmessage = function(event) {
+                // Get the div where want to write the data
+                data_div = document.getElementById("data");
+
+                // Create JSON object from data
+                data = JSON.parse(event.data);
+                
+                // The simple JSON should have two fields, message and data.
+                // Simply concatenate them together
+                data_div.innerHTML = data.message + " " + data.id;
+            };
+        </script>
+    </body>
+</html>

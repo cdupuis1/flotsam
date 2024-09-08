@@ -1,0 +1,41 @@
+<!-- This works with the python program sse_generator.py -->
+<html>
+    <head>
+        <title>SSE Sample App</title>
+    </head>
+    <body>
+        <div id="data"></div>
+        <br>
+        <button onclick="generate_event()">Push Me!</button>
+
+        <script>
+            // Call back to the "events" API handler to have the server generate
+            // a SSE event which is captured by the EventSource code
+            function generate_event() {
+                fetch('http://localhost:5000/events')
+                    // Handle "promise" from the fetch request
+                    .then(response => response.text())
+                    // Do something with the returned data
+                    .then(data => console.log(data))
+                    // Catch any error that may occur
+                    .catch(error => console.error('Error:', error));
+            }
+        
+            // Create the connection back to the server for server-side events (SSE)
+            event_source = new EventSource("http://localhost:5000/stream");
+            console.log("Registered EventSource");
+
+            // Call back for when we receive a message
+            event_source.onmessage = function(event) {
+                // Get the div where want to write the data
+                data_div = document.getElementById("data");
+
+                // Create JSON object from data
+                data = JSON.parse(event.data);
+                
+                console.log(data.message);
+                data_div.innerHTML = data.message;
+            };
+        </script>
+    </body>
+</html>
