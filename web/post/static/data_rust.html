@@ -1,0 +1,50 @@
+<!-- This works with the sse main.rs rust program to demonstrate how a rust
+     rocket application can process POST request from a form -->
+<html>
+    <head>
+        <title>Sample POST App</title>
+    </head>
+    <body>
+        <div id="data"></div>
+        <form id="post_form" enctype="multipart/form-data" method="POST">
+            <textarea id="query" name="query" rows="10" cols="50"></textarea><br>
+            <input type="submit" value="Submit Query">
+        </form>
+        <script>
+            // Assign HTML elements to variables
+            const post_form = document.getElementById("post_form");
+            data_div = document.getElementById("data");
+
+            // Assign a submit listener to post_form so that when the form does
+            // the post action our javascript handler will be triggered
+            document.getElementById("post_form").addEventListener("submit", async function(event) {
+                event.preventDefault(); // Prevent the HTML page from submitting the page
+                                        // without our intervention
+                
+              // Create a FormData object from the form
+              const formData = new FormData(post_form);
+
+              // Create an XMLHttpRequest object to send the data
+              const xhr = new XMLHttpRequest();
+
+              // Open the async request passing the address we want to
+              // contact
+              xhr.open('POST', 'http://127.0.0.1:8000/submit', true);
+
+              // Set up the objects onload() handler for when the data is returned
+              // from the server
+              xhr.onload = function() {
+                if (xhr.status === 200) {
+                  data_div.innerHTML = xhr.responseText + "<br><br>";
+                } else {
+                  console.error('Error:', xhr.status);
+                }
+              };
+
+              // Send the request with the form data.  The response will be
+              // handled by the onload() callback we already set up
+              xhr.send(formData);
+            });
+        </script>
+    </body>
+</html>
