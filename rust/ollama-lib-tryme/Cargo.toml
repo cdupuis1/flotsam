@@ -1,0 +1,7 @@
+[package]
+name = "ollama-lib-tryme"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ollama-lib = {path="ollama-lib"}
